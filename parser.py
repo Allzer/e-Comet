@@ -20,14 +20,14 @@ repos = soup.find_all("article", class_="Box-row")
 
 counter = 0
 # Вывод информации о репозиториях
-for repo in repos[:1]:
+for repo in repos[:2]:
     counter += 1
     # Название репозитория
     repo_name_elem = repo.find("h2", class_="h3 lh-condensed")
     if repo_name_elem:
         repo_name = repo_name_elem.text.replace("\n","").replace(" ","")
     else:
-        repo_name = "РЕпозиторий без названия"
+        repo_name = "Репозиторий без названия"
 
     # Количество звезд
     stars_elem = repo.find("a", class_="Link--muted")
@@ -66,31 +66,25 @@ for repo in repos[:1]:
 
     #Количество просмотров
     # Загрузка страницы
-    url_2 = f'https://github.com/{repo_name}'
-    response_2 = session.get(url_2)
-    html_2 = response_2.text
+    url_page = f"https://github.com/{repo_name}"
+    response_page = session.get(url_page)
+    html_page = response_page.text
 
     # Извлечение информации
-    soup_2 = BeautifulSoup(html, "html.parser")
-    repos_2 = soup.find_all("div", class_="mt-2")
+    soup_page = BeautifulSoup(html_page, "html.parser")
+    repos_page = soup_page.find_all("a", href="/maybe-finance/maybe/watchers")
 
-    for repo2 in repos_2:
-        views_elem = repo2.find("span", class_="Link--muted", recursive=False)
-        if views_elem:
-            views_text = views_elem.text.strip()
-        else:
-            views_text = "Views count not found"
+    for repo_page in repos_page[:2]:
+        view_elements = repo_page.find("strong")
 
 
 
-
-
-    print("Repository:", repo_name)
-    print("Stars:", stars)
-    print("Owners", owners)
-    print("Position", counter)
-    print("Watchers")
-    print("Forks", forks_text)
-    print("Issues", issues_text)
-    print("Views", views_text)
+    #print("Repository:", repo_name)
+    #print("Stars:", stars)
+    #print("Owners", owners)
+    #print("Position", counter)
+    #print("Watchers")
+    #print("Forks", forks_text)
+    #print("Issues", issues_text)
+    print("Views", view_elements)
 
