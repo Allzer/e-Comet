@@ -20,7 +20,7 @@ repos = soup.find_all("article", class_="Box-row")
 
 counter = 0
 # Вывод информации о репозиториях
-for repo in repos[:2]:
+for repo in repos[:1]:
     counter += 1
     # Название репозитория
     repo_name_elem = repo.find("h2", class_="h3 lh-condensed")
@@ -47,7 +47,6 @@ for repo in repos[:2]:
         owner_str = ", ".join(owners)
     else:
         owner_str = "Владелец не найден"
-
     del owners[:2]
 
     #Количество форков
@@ -70,12 +69,12 @@ for repo in repos[:2]:
     response_page = session.get(url_page)
     html_page = response_page.text
 
+
     # Извлечение информации
     soup_page = BeautifulSoup(html_page, "html.parser")
-    repos_page = soup_page.find_all("a", href="/maybe-finance/maybe/watchers")
-
-    for repo_page in repos_page[:2]:
-        view_elements = repo_page.find("strong")
+    repos_page = soup_page.find("a", href=f"/{repo_name}/watchers")
+    views = soup_page.find_all("strong")[2]
+    views.replace("<strong>","")
 
 
 
@@ -86,5 +85,5 @@ for repo in repos[:2]:
     #print("Watchers")
     #print("Forks", forks_text)
     #print("Issues", issues_text)
-    print("Views", view_elements)
+    print("Views", views)
 
