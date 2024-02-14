@@ -8,11 +8,11 @@ session = requests.Session()
 retry = Retry(connect=3, backoff_factor=0.5)
 adapter = HTTPAdapter(max_retries=retry)
 session.mount('https://', adapter)
-url = "https://github.com/trending?since=monthly"
+url_month = "https://github.com/trending?since=monthly"
 
 
 # Загрузка страницы
-response = session.get(url)
+response = session.get(url_month)
 html = response.text
 
 # Извлечение информации
@@ -58,6 +58,12 @@ for repo in repos:
         forks_text = "Колчиество форков не найдено"
 
 
+    """Извлечение информации о языках"""
+    try:
+        language = repo.find("span", itemprop="programmingLanguage").text
+    except:
+        language = "None"
+
 
 
     """количество просмотров и подключение"""
@@ -72,11 +78,6 @@ for repo in repos:
     """Извлечение информации о issues"""
     issues = soup_page.find("a", href=f"/{repo_name}/issues").text.replace("\n","").replace("Issues","")
 
-    """Извлечение информации о языках"""
-    language = soup_page.find("li", class_="d-inline").text.replace("\n","").replace("%","").replace(".","")
-    language = ''.join(i for i in language if not i.isdigit())
-
-
     print("Repository:", repo_name)
     print("Stars:", stars)
     print("Owners", owners)
@@ -84,5 +85,5 @@ for repo in repos:
     print("Watchers", views)
     print("Forks", forks_text)
     print("Issues", issues)
-    print("Language", language)
+    print("Language", language,"\n")
 
