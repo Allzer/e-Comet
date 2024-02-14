@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
-import re
 
 
 session = requests.Session()
@@ -22,7 +21,7 @@ repos = soup.find_all("article", class_="Box-row")
 
 counter = 0
 # Вывод информации о репозиториях
-for repo in repos[:1]:
+for repo in repos:
     counter += 1
     """Название репозитория"""
     repo_name_elem = repo.find("h2", class_="h3 lh-condensed")
@@ -58,24 +57,24 @@ for repo in repos[:1]:
     else:
         forks_text = "Колчиество форков не найдено"
 
-    # Количество открытых issues
-    issues_elem = repo.find("a", class_="Link--muted", href=lambda href: href and "/issues" in href)
-    if issues_elem:
-        issues_text = issues_elem.text.strip()
-    else:
-        issues_text = "Issues count not found"
 
-    """количество просмотров"""
+
+
+    """количество просмотров и подключение"""
     url_page = f"https://github.com/{repo_name}"
     response_page = session.get(url_page)
     html_page = response_page.text
 
-    # Извлечение информации
+    """Извлечение информации о просмотрах"""
     soup_page = BeautifulSoup(html_page, "html.parser")
     views = soup_page.find("a", href=f"/{repo_name}/watchers").text.replace("\n","").replace("watching","")
 
+    """Извлечение информации о issues"""
+    issues = soup_page.find("a", href=f"/{repo_name}/issues").text.replace("\n","").replace("Issues","")
 
-
+    """Извлечение информации о языках"""
+    language = soup_page.find("li", class_="d-inline").text.replace("\n","").replace("%","").replace(".","")
+    language = ''.join(i for i in language if not i.isdigit())
 
 
     print("Repository:", repo_name)
@@ -84,5 +83,6 @@ for repo in repos[:1]:
     print("Position", counter)
     print("Watchers", views)
     print("Forks", forks_text)
-    print("Issues", issues_text)
+    print("Issues", issues)
+    print("Language", language)
 
