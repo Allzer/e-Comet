@@ -2,6 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
+import re
+
 
 session = requests.Session()
 retry = Retry(connect=3, backoff_factor=0.5)
@@ -22,21 +24,21 @@ counter = 0
 # Вывод информации о репозиториях
 for repo in repos[:1]:
     counter += 1
-    # Название репозитория
+    """Название репозитория"""
     repo_name_elem = repo.find("h2", class_="h3 lh-condensed")
     if repo_name_elem:
         repo_name = repo_name_elem.text.replace("\n","").replace(" ","")
     else:
         repo_name = "Репозиторий без названия"
 
-    # Количество звезд
+    """Количество звезд"""
     stars_elem = repo.find("a", class_="Link--muted")
     if stars_elem:
         stars = stars_elem.text.strip()
     else:
         stars = "Звёзды не найдены"
 
-    # Владелец репозитория
+    """Владелец репозитория"""
     owners = []
     owner_elems = repo.find_all("a", class_="d-inline-block")
     for owner_elem in owner_elems:
@@ -49,7 +51,7 @@ for repo in repos[:1]:
         owner_str = "Владелец не найден"
     del owners[:2]
 
-    #Количество форков
+    """Количество форков"""
     forks_elem = repo.find("a", class_="Link--muted", href=lambda href: href and "/forks" in href)
     if forks_elem:
         forks_text = forks_elem.text.strip().replace(",","")
@@ -63,27 +65,24 @@ for repo in repos[:1]:
     else:
         issues_text = "Issues count not found"
 
-    #Количество просмотров
-    # Загрузка страницы
+    """количество просмотров"""
     url_page = f"https://github.com/{repo_name}"
     response_page = session.get(url_page)
     html_page = response_page.text
 
-
     # Извлечение информации
     soup_page = BeautifulSoup(html_page, "html.parser")
-    repos_page = soup_page.find("a", href=f"/{repo_name}/watchers")
-    views = soup_page.find_all("strong")[2]
-    views.replace("<strong>","")
+    views = soup_page.find("a", href=f"/{repo_name}/watchers").text.replace("\n","").replace("watching","")
 
 
 
-    #print("Repository:", repo_name)
-    #print("Stars:", stars)
-    #print("Owners", owners)
-    #print("Position", counter)
-    #print("Watchers")
-    #print("Forks", forks_text)
-    #print("Issues", issues_text)
-    print("Views", views)
+
+
+    print("Repository:", repo_name)
+    print("Stars:", stars)
+    print("Owners", owners)
+    print("Position", counter)
+    print("Watchers", views)
+    print("Forks", forks_text)
+    print("Issues", issues_text)
 
