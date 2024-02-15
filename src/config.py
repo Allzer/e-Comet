@@ -9,4 +9,4 @@ DB_USER = os.environ.get('DB_USER')
 DB_PASS = os.environ.get('DB_PASS')
 SECRET = os.environ.get('SECRET')
 
-URL = "https://github.com/trending?since=monthly"
+URL = "https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Top-100-stars.md"
