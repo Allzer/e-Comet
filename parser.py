@@ -4,86 +4,73 @@ from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
 
-session = requests.Session()
-retry = Retry(connect=3, backoff_factor=0.5)
-adapter = HTTPAdapter(max_retries=retry)
-session.mount('https://', adapter)
-url_month = "https://github.com/trending?since=monthly"
+url = "https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Top-100-stars.md"
+def parser(url):
+    #Обход ограничения запросов к старнице
+    session = requests.Session()
+    retry = Retry(connect=3, backoff_factor=0.5)
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('https://', adapter)
 
 
-# Загрузка страницы
-response = session.get(url_month)
-html = response.text
+    # Загрузка страницы
+    response = session.get(url)
+    html = response.text
 
-# Извлечение информации
-soup = BeautifulSoup(html, "html.parser")
-repos = soup.find_all("article", class_="Box-row")
+    # Извлечение информации
+    soup = BeautifulSoup(html, "html.parser")
+    repos = soup.find_all("tbody")
 
-counter = 0
-# Вывод информации о репозиториях
-for repo in repos:
-    counter += 1
-    """Название репозитория"""
-    repo_name_elem = repo.find("h2", class_="h3 lh-condensed")
-    if repo_name_elem:
-        repo_name = repo_name_elem.text.replace("\n","").replace(" ","")
-    else:
-        repo_name = "Репозиторий без названия"
-
-    """Количество звезд"""
-    stars_elem = repo.find("a", class_="Link--muted")
-    if stars_elem:
-        stars = stars_elem.text.strip()
-    else:
-        stars = "Звёзды не найдены"
-
-    """Владелец репозитория"""
-    owners = []
-    owner_elems = repo.find_all("a", class_="d-inline-block")
-    for owner_elem in owner_elems:
-        owner = owner_elem["href"].split("/")[-1]
-        owners.append(owner)
-
-    if owners:
-        owner_str = ", ".join(owners)
-    else:
-        owner_str = "Владелец не найден"
-    del owners[:2]
-
-    """Количество форков"""
-    forks_elem = repo.find("a", class_="Link--muted", href=lambda href: href and "/forks" in href)
-    if forks_elem:
-        forks_text = forks_elem.text.strip().replace(",","")
-    else:
-        forks_text = "Колчиество форков не найдено"
+    for repo in repos[:1]:
+        rait = int(repo.find_all("td")[0].text)
+        name = repo.find_all("td")[1].find("a")["href"].replace('https://github.com/',"").replace('"', "").replace("\\",'')
+        stars = int(repo.find_all("td")[2].text)
+        forks = int(repo.find_all("td")[3].text)
+        issues = int(repo.find_all("td")[5].text)
+        language = repo.find_all("td")[4].text
 
 
-    """Извлечение информации о языках"""
-    try:
-        language = repo.find("span", itemprop="programmingLanguage").text
-    except:
-        language = "None"
+        """количество просмотров и подключение"""
+        url_page = f"https://github.com/{name}"
+        response_page = session.get(url_page)
+        html_page = response_page.text
+
+        """Извлечение информации о просмотрах"""
+        soup_page = BeautifulSoup(html_page, "html.parser")
+        views = int(soup_page.find("a", href=f"/{name}/watchers").text.replace("\n", "").replace("watching", "").replace("k","00").replace(" ","").replace(".",""))
 
 
 
-    """количество просмотров и подключение"""
-    url_page = f"https://github.com/{repo_name}"
-    response_page = session.get(url_page)
-    html_page = response_page.text
 
-    """Извлечение информации о просмотрах"""
-    soup_page = BeautifulSoup(html_page, "html.parser")
-    views = soup_page.find("a", href=f"/{repo_name}/watchers").text.replace("\n","").replace("watching","")
+        """Извлечение информации о владельцах"""
+        owner_link = soup_page.find_all("li", class_='mb-2 mr-2')
+        owners = []
+        for i in range(len(owner_link)):
+            owners.append(owner_link[i].find("a")["href"].replace("https://github.com/",""))
 
-    """Извлечение информации о issues"""
-    issues = soup_page.find("a", href=f"/{repo_name}/issues").text.replace("\n","").replace("Issues","")
+        dict = {
+            "repo":name,
+            "owner":owners,
+            "position_cur":rait,
+            "position_prev":rait-1,
+            "stars":stars,
+            "watchers":views,
+            "forks":forks,
+            "open_issues":issues,
+            "language":language
+        }
 
-    print("Repository:", repo_name)
-    print("Stars:", stars)
-    print("Owners", owners)
-    print("Position", counter)
-    print("Watchers", views)
-    print("Forks", forks_text)
-    print("Issues", issues)
-    print("Language", language,"\n")
+        return dict
 
+        #print("Название", name)
+        #print("Владелец", owners)
+        #print("Рейтинг", rait)
+        #print("Предыдущая позиция в топе", rait-1)
+        #print("Кол-во звёзд", stars)
+        #print("Кол-во просмотров", views)
+        #print("Кол-во форков", forks)
+        #print("Кол-во issues", issues)
+        #print("Язык", language)
+        #print("")
+
+print(parser(url))
