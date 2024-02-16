@@ -1,30 +1,24 @@
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.GetRepos.models import repos
-from src.GetRepos.parser import parser
-from src.config import URL
+from src.GetRepos.models import repos, owners  # Импорт моделей для всех таблиц
 from src.database import DB_URL
 
 # Create engine
-engine = create_engine(DB_URL)
 
-# Define metadata
-metadata = MetaData()
-
-
-
-# Create session
-Session = sessionmaker(bind=engine)
-session = Session()
 
 # Define the update function
-def update(pars):
+def update(parser):
+    engine = create_engine(DB_URL)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
     print("Начало update")
 
     try:
-        for k, v in pars.items():
-            session.execute(repos.insert().values(
+        for k, v in parser.items():  # k - название репозитория, v - информация о репозитории
+            # Добавление данных в таблицу "repos"
+            repo_insert = repos.insert().values(
                 repo=k,
                 owner=v["owner"],
                 position_cur=v["position_cur"],
@@ -34,16 +28,24 @@ def update(pars):
                 forks=v["forks"],
                 open_issues=v["open_issues"],
                 language=v["language"],
-            ))
+            )
+            repo_id = session.execute(repo_insert).inserted_primary_key[0]  # Получаем id добавленной записи
+
+            # Добавление данных в таблицу "owners"
+            for owner in v["owner"]:
+                session.execute(owners.insert().values(
+                    owner_name=owner,
+                    repo_id=repo_id
+                ))
+
+            print(f"add: {k}")
+
         session.commit()
-    except Exception as pp:
-        print(pp)
+        print("Завершено успешно")
+    except Exception as e:
+        session.rollback()
+        print(f"Ошибка при выполнении: {e}")
     finally:
         session.close()
-        print("Закончил работу\n")
 
-# Ваш парсер должен вернуть словарь с данными
-pars = parser(URL)
 
-# Call the update function
-update(pars)

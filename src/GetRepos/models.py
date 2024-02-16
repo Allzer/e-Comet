@@ -1,19 +1,34 @@
-from sqlalchemy import Table, Column, Integer, String, MetaData
+from sqlalchemy import (ForeignKeyConstraint,
+                        create_engine, MetaData, Table, Column, Integer, String, ForeignKey)
+
+from src.database import DB_URL
 
 metadata = MetaData()
 
+# Создание базы данных
+engine = create_engine(DB_URL)
+
+# Определение таблицы репозиториев
 repos = Table(
-    "repos",
+    'repos',
     metadata,
-    Column("id", Integer, primary_key=True),
-    Column("repo",String), #название репозитория (full_name в API GitHub)
-    Column("owner",String), #владелец репозитория
-    Column("position_cur",Integer), #текущая позиция в топе
-    Column("position_prev", Integer),  #предыдущая позиция в топе
-    Column("stars", String), #количество звёзд
-    Column("watchers",Integer), #количество просмотров
-    Column("forks", Integer), #количество форков
-    Column("open_issues", Integer), #количество открытых issues
-    Column("language", String) #язык
+    Column('id', Integer, primary_key=True),
+    Column('repo', String),
+    Column('owner', String),
+    Column('position_cur', Integer),
+    Column('position_prev', Integer),
+    Column('stars', Integer),
+    Column('watchers', Integer),
+    Column('forks', Integer),
+    Column('open_issues', Integer),
+    Column('language', String),
 )
+
+# Определение таблицы владельцев
+owners = Table('owners',
+               metadata,
+               Column('id', Integer, primary_key=True),
+               Column('owner_name', String),
+               Column('repo_id', Integer, ForeignKey('repos.id')),  # Не указываем ForeignKey здесь
+               )
 

@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
-import re
 
 from src.config import URL
 
@@ -23,7 +22,7 @@ def parser(url):
     soup = BeautifulSoup(html, "html.parser")
     repos = soup.find_all("tr")
 
-    for repo in repos[1:10]:
+    for repo in repos:
         rait = repo.find_all("td")[0:1]
         for i in rait:
             rait = int(i.text)
@@ -65,7 +64,6 @@ def parser(url):
         owners = []
         for i in range(len(owner_link)):
             owners.append(owner_link[i].find("a")["href"].replace("https://github.com/", ""))
-            str(owners)
             if name not in all_repos_dict:
                 all_repos_dict[name] = {
                     "owner": owners,
@@ -78,4 +76,3 @@ def parser(url):
                     "language": language
                 }
     return all_repos_dict
-
